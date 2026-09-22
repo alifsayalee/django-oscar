@@ -306,7 +306,23 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox PayPal payments API (additive; see apps/payments_api)
+    'apps.payments_api.apps.PaymentsApiConfig',
 ]
+
+# ---------------------------------------------------------------------------
+# PayPal payments integration (apps.payments_api)
+# ---------------------------------------------------------------------------
+# All values are read from the environment at run time; never hard-code the
+# secret values in this file. PAYPAL_BASE_URL is an optional override: when set
+# it is used verbatim as the API base address for every PayPal call (including
+# the OAuth token request); otherwise the SDK's sandbox default is used.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='') or None
 
 # Add Oscar's custom auth backend so users can sign in using their email
 # address.

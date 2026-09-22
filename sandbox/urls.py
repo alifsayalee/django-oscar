@@ -25,7 +25,10 @@ urlpatterns = [
         {'sitemaps': base_sitemaps}),
     path('sitemap-<slug:section>.xml', views.sitemap,
         {'sitemaps': base_sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')
+        name='django.contrib.sitemaps.views.sitemap'),
+
+    # PayPal payments API (session-authenticated JSON API; not language-prefixed)
+    path('api/', include('apps.payments_api.urls')),
 ]
 
 # Prefix Oscar URLs with language codes

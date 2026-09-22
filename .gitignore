@@ -59,4 +59,4 @@ settings_local.py
 /sandbox/logs/
 
 # test stuff
-/tests/whoosh_index/
+/tests/whoosh_index/.venv/
