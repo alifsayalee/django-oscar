@@ -20,6 +20,10 @@ urlpatterns = [
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 
+    # PayPal checkout REST API (sandbox app); must sit outside i18n_patterns
+    # so its paths are not language-prefixed.
+    path('api/', include('apps.paypal_checkout.urls')),
+
     # include a basic sitemap
     path('sitemap.xml', views.index,
         {'sitemaps': base_sitemaps}),
