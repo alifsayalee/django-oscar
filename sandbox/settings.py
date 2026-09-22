@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Additive PayPal payments + saved-cards REST API (this sandbox project)
+    'apps.paypal_api',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,18 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============
+# PayPal settings
+# ==============
+# Read from the environment at run time. Never hard-code the credential values
+# here (or anywhere in the repo). PAYPAL_BASE_URL is an optional override; when
+# set it is used verbatim for every PayPal call, including the token request.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
