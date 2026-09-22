@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,21 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing
+# =======================
+# Credentials and site config for the subscriptions app. Values are read from the
+# environment at run time and NEVER hard-coded here. Defaults are empty/None so that
+# importing this module never raises; apps.subscriptions.client.build_client() is
+# where a missing value stops the app with a clear message.
+MAXIO_API_KEY = env('MAXIO_API_KEY', default=None)
+MAXIO_SITE_SUBDOMAIN = env('MAXIO_SITE_SUBDOMAIN', default=None)
+MAXIO_DEFAULT_PRODUCT_FAMILY = env('MAXIO_DEFAULT_PRODUCT_FAMILY', default=None)
+# Optional explicit base-URL override; when set it is used verbatim instead of
+# deriving the URL from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env('MAXIO_BASE_URL', default=None)
+# Optional Maxio host environment (us / eu / maxio_api_gateway); defaults to "us".
+MAXIO_ENVIRONMENT = env('MAXIO_ENVIRONMENT', default='us')
 
 # Try and import local settings which can be used to override any of the above.
 try:
