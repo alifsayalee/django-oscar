@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox recurring-subscription billing (Maxio Advanced Billing)
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,24 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============================
+# Maxio Advanced Billing settings
+# ==============================
+#
+# Recurring-subscription billing (see apps/subscriptions). All values are read
+# from the environment at run time; only the variable NAMES appear here, never
+# their values, so the same build runs against a different Maxio account.
+#
+#   MAXIO_API_KEY               - Basic-auth username (password is the literal "x")
+#   MAXIO_SITE_SUBDOMAIN        - Chargify site subdomain; fills {site} in the base URL
+#   MAXIO_DEFAULT_PRODUCT_FAMILY- handle of the product family whose plans we expose
+#   MAXIO_BASE_URL              - optional; when set, used verbatim as the API base URL
+#                                 instead of one derived from the subdomain
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
