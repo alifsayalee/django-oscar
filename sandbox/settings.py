@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,30 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# =====================================
+# Maxio Advanced Billing (subscriptions)
+# =====================================
+# Credentials and site configuration for the Maxio subscription-billing app
+# (apps.subscriptions). Values are read from the environment at run time; only
+# the environment-variable *names* live in the repository, never their values.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional explicit base-URL override. When set it is used verbatim as the API
+# base address instead of being derived from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# Request timeout (seconds) for calls to Maxio.
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=30.0)
+# Plan (product handle) used by POST /api/subscriptions when the caller does not
+# name one. Defaults to the seeded Pro plan; not a secret and safe to override.
+MAXIO_DEFAULT_PLAN_HANDLE = env.str('MAXIO_DEFAULT_PLAN_HANDLE', default='eshop-pro')
+# How Maxio collects payment for new subscriptions. "remittance" (invoice)
+# lets a subscription be created without a payment method on file, which suits
+# the seeded plans (no card required). Override to "automatic" once cards are
+# captured. One of: remittance, automatic, prepaid, invoice.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str(
+    'MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
 
 # Try and import local settings which can be used to override any of the above.
 try:
