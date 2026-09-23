@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox PayPal checkout API (additive)
+    'apps.paypal_checkout.apps.PaypalCheckoutConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,28 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============
+# PayPal settings
+# ==============
+#
+# Read from the environment at import time, with EMPTY defaults so that importing
+# this module never raises when the variables are absent (a test run, a fresh
+# clone). The presence check lives where the PayPal client is built
+# (apps.paypal_checkout.gateway.get_client), which refuses an empty credential and
+# names the missing variable. Secret VALUES are never written into this repo — only
+# the variable names are referenced here.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional explicit API base URL. When set, it is used verbatim for EVERY PayPal
+# call (including the OAuth token request) instead of being derived from
+# PAYPAL_ENVIRONMENT.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# When true, wrap the PayPal transport to log method/URL/status (never bodies or
+# headers) — useful for verifying a new call on the wire. Off by default.
+PAYPAL_DEBUG_WIRE = env.bool('PAYPAL_DEBUG_WIRE', default=False)
 
 # Try and import local settings which can be used to override any of the above.
 try:

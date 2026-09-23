@@ -25,7 +25,12 @@ urlpatterns = [
         {'sitemaps': base_sitemaps}),
     path('sitemap-<slug:section>.xml', views.sitemap,
         {'sitemaps': base_sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')
+        name='django.contrib.sitemaps.views.sitemap'),
+
+    # PayPal checkout API (additive). Kept outside i18n_patterns so the JSON API
+    # is reachable at stable, un-prefixed /api/... paths.
+    path('api/', include(('apps.paypal_checkout.urls', 'paypal_checkout'),
+                         namespace='paypal_checkout')),
 ]
 
 # Prefix Oscar URLs with language codes
