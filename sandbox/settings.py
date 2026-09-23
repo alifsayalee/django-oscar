@@ -240,6 +240,12 @@ LOGGING = {
             'propagate': False,
         },
 
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +312,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -393,6 +402,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
     'Pending': ('Being processed', 'Cancelled',),
+    # Orders placed through the payments API (apps.paypal_payments)
+    'Awaiting payment': ('Payment authorised', 'Cancelled',),
+    'Payment authorised': ('Complete', 'Cancelled', 'Awaiting payment',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
@@ -430,6 +442,21 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+# JSON body for CSRF failures under /api/, Django's default page elsewhere
+CSRF_FAILURE_VIEW = 'apps.paypal_payments.views.csrf_failure'
+
+# PayPal
+# ======
+
+# Credentials and account configuration come from the environment only.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call (including the OAuth token request).
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='') or None
+PAYPAL_TIMEOUT_SECONDS = env.float('PAYPAL_TIMEOUT_SECONDS', default=20.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:
