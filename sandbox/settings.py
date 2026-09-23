@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox app: SMS order notifications via Twilio
+    'apps.smsnotify.apps.SMSNotifyConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +408,22 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# ==========================================
+# Twilio SMS order notifications (smsnotify)
+# ==========================================
+# All values come from the environment at run time; none are hard-coded here.
+# Empty defaults keep this module importable with no credentials (e.g. a test
+# run) -- the gateway raises if a required one is missing when it builds the
+# client. The auth token is a secret and is never logged or returned.
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override for the messaging API base URL only (server key "default" =
+# api.twilio.com). When set, every messaging-API call uses it verbatim; Lookup
+# and other hosts are unaffected.
+TWILIO_BASE_URL = env('TWILIO_BASE_URL', default='')
 
 # Sorl
 # ====
