@@ -25,7 +25,10 @@ urlpatterns = [
         {'sitemaps': base_sitemaps}),
     path('sitemap-<slug:section>.xml', views.sitemap,
         {'sitemaps': base_sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')
+        name='django.contrib.sitemaps.views.sitemap'),
+
+    # SMS order-notification API (session-authenticated JSON, no language prefix)
+    path('api/', include('apps.sms.urls')),
 ]
 
 # Prefix Oscar URLs with language codes
