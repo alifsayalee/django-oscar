@@ -214,6 +214,19 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.sms_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # HTTP client internals log full URLs (which can carry phone numbers)
+        # at DEBUG/INFO; the gateway logs its own redacted line instead.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +319,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +408,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -430,6 +447,24 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Twilio (order SMS notifications)
+# ================================
+# Values come from the environment only; empty defaults keep imports (and the
+# test run) working without credentials. The client refuses to build when the
+# required ones are missing - see apps/sms_notifications/gateway.py.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the messaging API base address (not Lookups).
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
+# Destinations used only by the opt-in live integration tests.
+TWILIO_TEST_TO_NUMBER = env.str('TWILIO_TEST_TO_NUMBER', default='')
+TWILIO_UNREACHABLE_TO_NUMBER = env.str('TWILIO_UNREACHABLE_TO_NUMBER', default='')
+TWILIO_TIMEOUT_SECONDS = env.float('TWILIO_TIMEOUT_SECONDS', default=10.0)
+# How long after dispatch the "how did the delivery go?" follow-up is scheduled.
+SMS_FOLLOWUP_DELAY_HOURS = env.int('SMS_FOLLOWUP_DELAY_HOURS', default=72)
 
 # Try and import local settings which can be used to override any of the above.
 try:
