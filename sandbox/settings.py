@@ -251,6 +251,20 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # Keep HTTP client internals out of the logs; the PayPal app logs its
+        # own method/path/status lines without headers or bodies.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'apps.paypal_payments': {
+            'level': 'INFO',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +320,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +422,20 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Read from the environment at run time; no values live in the repository.
+# Empty defaults keep imports (and test runs) working without credentials -
+# the PayPal client refuses to build until the credentials are set.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call, the OAuth token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
 
 # Sorl
 # ====
