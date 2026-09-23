@@ -246,6 +246,16 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        # Keep the HTTP client from logging request URLs: a Twilio lookup URL
+        # embeds the shopper's phone number, which must never reach the logs.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': False,
+        },
         'sorl.thumbnail': {
             'handlers': ['console'],
             'propagate': True,
@@ -430,6 +440,26 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============
+# Twilio (SMS order notifications)
+# ==============
+# Read from the environment at run time. Defaults are empty so importing this
+# module never raises; the missing-credential check lives in the SMS gateway
+# builder (apps.ordersms.twilio_gateway). Never write credential *values* here.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override for the *messaging* API base URL only (server "default").
+# Lookups and other Twilio hosts are unaffected.
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
+
+# Days after dispatch that the "how did delivery go?" follow-up is scheduled for.
+TWILIO_FOLLOWUP_DELAY_DAYS = env.int('TWILIO_FOLLOWUP_DELAY_DAYS', default=3)
+
+# The SMS order-notifications app (additive; wired at /api/ in urls.py).
+INSTALLED_APPS = INSTALLED_APPS + ['apps.ordersms.apps.OrderSmsConfig']
 
 # Try and import local settings which can be used to override any of the above.
 try:
