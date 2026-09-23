@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,19 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============
+# Maxio Advanced Billing (subscriptions integration)
+# ==============
+#
+# All values are read from the environment at run time; secrets are never written into
+# this file. The missing-credential check lives in apps.subscriptions.maxio_client, so
+# these default to empty strings and importing this module never raises.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional verbatim base-URL override; when unset the base URL is derived from the subdomain.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
