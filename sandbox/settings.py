@@ -240,6 +240,21 @@ LOGGING = {
             'propagate': False,
         },
 
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The PayPal SDK's HTTP stack: keep wire-level traces (headers) out of logs.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +321,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # JSON API: orders, PayPal payments and saved cards (routed under /api/)
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +410,11 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the payments API start awaiting payment, move to
+    # 'Payment authorized' once PayPal holds the funds, and to 'Complete' when
+    # fulfilment captures them.
+    'Awaiting payment': ('Payment authorized', 'Cancelled',),
+    'Payment authorized': ('Complete', 'Cancelled',),
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -405,6 +428,24 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+# Credentials are read from the environment at run time and never committed.
+# Importing settings never fails when they are absent; the PayPal client refuses
+# to start without them (apps/paypal_payments/gateway.py).
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects PayPal's sandbox host. Any other environment must name its
+# API host through PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+# ISO-4217 code every order is priced and charged in.
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the base address of every PayPal call,
+# including the OAuth token request.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds allowed per PayPal HTTP request (connect, read, write, pool).
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
 
 # Sorl
 # ====
