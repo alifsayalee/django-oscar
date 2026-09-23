@@ -17,6 +17,9 @@ urlpatterns = [
     # for developers.
     path('admin/', admin.site.urls),
 
+    # Subscription billing API (Maxio Advanced Billing)
+    path('api/', include('apps.maxio_billing.urls')),
+
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 

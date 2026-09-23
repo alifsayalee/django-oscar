@@ -219,6 +219,12 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        # Maxio calls: method, path, status and latency only
+        'apps.maxio_billing': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
 
         # Django loggers
         'django': {
@@ -306,6 +312,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed through Maxio Advanced Billing
+    'apps.maxio_billing.apps.MaxioBillingConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +433,24 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# Maxio Advanced Billing
+# ======================
+# Credentials come from the environment only. Empty defaults keep imports (and
+# the test suite) working without them; the billing client refuses to start
+# with a missing value instead.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: used verbatim as the API base address instead of the subdomain URL
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# "us" or "eu" (case-insensitive)
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+MAXIO_TIMEOUT_SECONDS = env.float('MAXIO_TIMEOUT_SECONDS', default=15.0)
+# The plans take no payment method, so signup is invoiced rather than charged
+# to a card. Use "invoice" on sites still on the legacy statements architecture.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
