@@ -235,6 +235,11 @@ LOGGING = {
             'level': 'WARNING',
             'propagate': True,
         },
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'django.security.DisallowedHost': {
             'handlers': ['null'],
             'propagate': False,
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed as a JSON API under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +413,24 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account settings come from the environment only; nothing
+# here names a real value, so the same build runs against any PayPal account.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects the PayPal SDK's sandbox host; any other environment must
+# also set PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+# ISO 4217 code that orders placed through the API are priced and paid in.
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: used verbatim as the base address of every PayPal call, including
+# the OAuth token request, instead of the environment's host.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='') or None
+# Seconds before a PayPal call is abandoned (connect, read, write, pool).
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
 
 # Sorl
 # ====
