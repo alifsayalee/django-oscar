@@ -25,7 +25,10 @@ urlpatterns = [
         {'sitemaps': base_sitemaps}),
     path('sitemap-<slug:section>.xml', views.sitemap,
         {'sitemaps': base_sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')
+        name='django.contrib.sitemaps.views.sitemap'),
+
+    # Maxio subscription billing API (additive, parallel to the cart/checkout flow)
+    path('api/', include('apps.subscriptions.urls')),
 ]
 
 # Prefix Oscar URLs with language codes

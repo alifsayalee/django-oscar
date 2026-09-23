@@ -306,7 +306,20 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Maxio subscription billing (additive capability)
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
+
+# --- Maxio Advanced Billing ------------------------------------------------
+# Read at runtime from the environment; NEVER hard-code the values here. Defaults are empty so
+# importing this module never raises — the missing-credential check lives in
+# apps.subscriptions.client.build_client(), per the SDK's secret-loading guidance.
+MAXIO_API_KEY = env('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base URL instead of deriving one from the subdomain.
+MAXIO_BASE_URL = env('MAXIO_BASE_URL', default='')
 
 # Add Oscar's custom auth backend so users can sign in using their email
 # address.
