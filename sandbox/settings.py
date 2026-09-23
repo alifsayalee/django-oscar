@@ -251,6 +251,22 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+
+        # PayPal integration: method, path and status only (see
+        # apps.payments.gateway). The HTTP client libraries are kept quiet so
+        # nothing lower down ever logs request details.
+        'apps.payments': {
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +322,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards API (/api/)
+    'apps.payments.apps.PaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +411,11 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the payments API (apps.payments)
+    'Awaiting payment': ('Payment authorised', 'Cancelled',),
+    'Payment authorised': ('Fulfilled', 'Cancelled',),
+    'Fulfilled': (),
+    # Orders placed through the storefront checkout
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -404,7 +428,22 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
+    'Fulfilled': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Read from the environment at run time; no value is ever written here.
+# PAYPAL_BASE_URL, when set, is used verbatim as the API host for every PayPal
+# call (the OAuth token request included) instead of the one implied by
+# PAYPAL_ENVIRONMENT.
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env('PAYPAL_CURRENCY', default='USD')
+PAYPAL_BASE_URL = env('PAYPAL_BASE_URL', default='')
+PAYPAL_TIMEOUT_SECONDS = env.float('PAYPAL_TIMEOUT_SECONDS', default=20.0)
 
 # Sorl
 # ====
