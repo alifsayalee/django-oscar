@@ -251,6 +251,21 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+
+        # The Twilio SDK's HTTP transport (httpx/httpcore) logs request URLs,
+        # and the Lookups call carries the shopper's number in the path. Keep
+        # these at WARNING and off the root DEBUG handler so a shopper's number
+        # is never written to logs.
+        'httpx': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +321,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox-local: order notifications by SMS (Twilio)
+    'apps.sms.apps.SmsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +448,26 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# =====================================
+# Twilio / order SMS notifications (apps.sms)
+# =====================================
+# All values are read from the environment at run time. Never hard-code the
+# credential values here; only the setting/variable names live in the repo.
+# The auth token is a secret and is never logged, returned by an endpoint, or
+# written into a source file.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override for the *messaging* API base URL (the host this integration
+# sends, reads and reconciles messages through). When set it is used verbatim
+# for every messaging-API call; Twilio's other hosts (e.g. Lookups) are not
+# governed by it. Empty means use the SDK's default host.
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
+# How many days after dispatch the "how did delivery go?" follow-up is queued
+# with the provider for.
+SMS_FOLLOWUP_DELAY_DAYS = env.int('SMS_FOLLOWUP_DELAY_DAYS', default=3)
 
 # Try and import local settings which can be used to override any of the above.
 try:
