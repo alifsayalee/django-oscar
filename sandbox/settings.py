@@ -240,7 +240,18 @@ LOGGING = {
             'propagate': False,
         },
 
+        # Maxio subscription billing: claims, reconciliations and provider failures
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
+        'httpcore': {
+            'level': 'INFO',
+            'propagate': True,
+        },
         'raven': {
             'level': 'DEBUG',
             'handlers': ['console'],
@@ -306,6 +317,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +444,20 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing (subscriptions)
+# =======================================
+# Read from the environment at run time; never commit values. Empty defaults keep imports safe, and the
+# billing client refuses to start (naming what is missing) until the required ones are set.
+
+MAXIO_API_KEY = env('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the subdomain-derived one.
+MAXIO_BASE_URL = env('MAXIO_BASE_URL', default='')
+# 'US' (default) or 'EU' hosting.
+MAXIO_ENVIRONMENT = env('MAXIO_ENVIRONMENT', default='US')
+MAXIO_TIMEOUT_SECONDS = env.float('MAXIO_TIMEOUT_SECONDS', default=10.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:
