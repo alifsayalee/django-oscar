@@ -27,6 +27,10 @@ DATABASES = {
         'ATOMIC_REQUESTS': True
     }
 }
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    # Take SQLite's write lock when a transaction starts and wait for it,
+    # instead of failing with "database is locked" under concurrent writes.
+    DATABASES['default']['OPTIONS'] = {'transaction_mode': 'IMMEDIATE', 'timeout': 20}
 
 CACHES = {
     'default': env.cache(default='locmemcache://'),
@@ -251,6 +255,17 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
     }
 }
 
@@ -306,6 +321,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -436,3 +454,19 @@ try:
     from settings_local import *
 except ImportError:
     pass
+
+# PayPal
+# ======
+
+# Credentials and account settings come from the environment only; never put
+# their values in this file. Empty defaults keep imports (and tests) working
+# without them; the PayPal client refuses to start until they are set.
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call, including the OAuth token request.
+PAYPAL_BASE_URL = env('PAYPAL_BASE_URL', default='')
+# Seconds allowed for one PayPal HTTP call.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
