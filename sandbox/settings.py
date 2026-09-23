@@ -214,6 +214,19 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.order_sms': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # httpx logs full request URLs at INFO; those carry shoppers' phone
+        # numbers (Twilio Lookup paths, message list filters).
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +319,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.order_sms.apps.OrderSmsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +408,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -402,9 +419,24 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 # is changed
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
+    'Dispatched': 'Shipped',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# Twilio (order SMS notifications, apps.order_sms)
+# ======
+# Read from the environment at run time; never commit values. Empty defaults
+# keep imports (and the test suite) working - the app refuses to call Twilio
+# until the account SID, auth token and sending number are all set.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override for the messaging API's base address (e.g. a mock server).
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
+# How long after dispatch the "how did the delivery go?" message is scheduled.
+ORDER_SMS_FOLLOWUP_DELAY_SECONDS = env.int('ORDER_SMS_FOLLOWUP_DELAY_SECONDS', default=3 * 24 * 3600)
 
 # Sorl
 # ====
