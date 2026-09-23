@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox: Maxio Advanced Billing subscription API (additive to Oscar).
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,23 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============================
+# Maxio Advanced Billing settings
+# ==============================
+# All values are read from the environment at run time. Never hard-code a
+# secret value here -- only the variable names appear in the repository.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional override: when set, used verbatim as the API base address instead of
+# deriving one from the site subdomain.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# Selects the Maxio hosting environment (us/eu/maxio_api_gateway); normalised to
+# lowercase before use.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+# Plan a bare POST /api/subscriptions subscribes to when no planHandle is given.
+MAXIO_DEFAULT_PLAN_HANDLE = env.str('MAXIO_DEFAULT_PLAN_HANDLE', default='eshop-pro')
 
 # Try and import local settings which can be used to override any of the above.
 try:
