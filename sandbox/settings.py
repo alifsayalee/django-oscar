@@ -246,6 +246,10 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        # Keep the PayPal SDK's HTTP client quiet: its DEBUG logs are noisy and we
+        # never want request bodies/headers (which carry credentials) in the log.
+        'httpx': {'level': 'WARNING', 'propagate': False},
+        'httpcore': {'level': 'WARNING', 'propagate': False},
         'sorl.thumbnail': {
             'handlers': ['console'],
             'propagate': True,
@@ -306,6 +310,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # The additive PayPal payments/checkout API (Flow 1 & Flow 2)
+    'apps.api.apps.ApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +437,21 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============
+# PayPal settings
+# ==============
+# Read at run time from the environment via django-environ. The values are never
+# written into the repository; only the variable names are referenced here. An empty
+# default keeps importing this module side-effect-free (the credential check lives in
+# apps.api.paypal_gateway.get_client), per the SDK's secret-loading guidance.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional explicit base URL. When set it is used verbatim for every PayPal call,
+# including the OAuth token request; otherwise it is derived from PAYPAL_ENVIRONMENT.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
