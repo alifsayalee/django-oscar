@@ -251,6 +251,21 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # Sandbox apps (apps.subscriptions.maxio logs each Maxio call:
+        # method, URL, status and duration - never headers or bodies).
+        'apps': {
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # HTTP client used by the Maxio SDK
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +321,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +448,19 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing (subscriptions API)
+# ==========================================
+# Values come from the environment only. Empty defaults keep imports safe; the
+# client factory in apps.subscriptions.gateway refuses to run without them.
+MAXIO_API_KEY = env('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: used verbatim as the API base address instead of the subdomain.
+MAXIO_BASE_URL = env('MAXIO_BASE_URL', default='')
+# Maxio hosting region: 'us' or 'eu'.
+MAXIO_ENVIRONMENT = env('MAXIO_ENVIRONMENT', default='us')
+MAXIO_TIMEOUT_SECONDS = env.float('MAXIO_TIMEOUT_SECONDS', default=10.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:
