@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox SMS order-notifications app (Twilio integration)
+    'apps.notifications.apps.NotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,17 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Twilio SMS order-notifications integration
+# ==========================================
+# Read at run time from the environment; values are never hard-coded here. The auth token is a
+# secret -- it is only ever read here into settings, never logged or returned by an endpoint.
+# TWILIO_BASE_URL is an optional override for the messaging API (send/read/reconcile) only.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
