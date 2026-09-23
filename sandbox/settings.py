@@ -214,6 +214,19 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.order_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # HTTP client libraries used by the Twilio SDK: their DEBUG output
+        # echoes wire-level detail, which has no place in the sandbox console.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +319,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.order_notifications.apps.OrderNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +408,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -402,6 +419,7 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 # is changed
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
+    'Dispatched': 'Shipped',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
@@ -430,6 +448,22 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Twilio (order SMS notifications, apps.order_notifications)
+# ============================================================
+# Values come from the environment only; nothing is hard-coded. Empty values are
+# allowed at import time (so tests and management commands run without them) and
+# are refused where the client is built.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the messaging API's base address (used verbatim).
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
+# Per-request HTTP timeout (seconds) for calls to Twilio.
+TWILIO_HTTP_TIMEOUT = env.float('TWILIO_HTTP_TIMEOUT', default=10.0)
+# How long after dispatch the "how did the delivery go?" follow-up is sent.
+TWILIO_FOLLOWUP_DELAY_SECONDS = env.int('TWILIO_FOLLOWUP_DELAY_SECONDS', default=3 * 24 * 60 * 60)
 
 # Try and import local settings which can be used to override any of the above.
 try:
