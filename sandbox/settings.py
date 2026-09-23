@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox PayPal payments API (additive; see sandbox/apps/paypal_api)
+    'apps.paypal_api.apps.PaypalApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,27 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============
+# PayPal settings
+# ==============
+#
+# Credentials are read from the environment at runtime. Never hard-code their
+# VALUES anywhere in the repository -- only the variable names appear here.
+# Defaults are empty strings so that importing settings never raises; the
+# missing-credential check lives in apps.paypal_api.client.build_client().
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional explicit API base URL. When set, it is used verbatim for every PayPal
+# call (including the OAuth token request); otherwise the base URL is derived
+# from PAYPAL_ENVIRONMENT (see apps.paypal_api.client).
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+
+# Orders and payments are denominated in the configured PayPal currency so the
+# amount PayPal holds equals the order total to the cent.
+OSCAR_DEFAULT_CURRENCY = PAYPAL_CURRENCY
 
 # Try and import local settings which can be used to override any of the above.
 try:
