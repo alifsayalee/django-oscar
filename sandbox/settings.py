@@ -240,6 +240,24 @@ LOGGING = {
             'propagate': False,
         },
 
+        # PayPal integration: request line, status and timing only - never
+        # headers or bodies (they carry the bearer token and card data).
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'httpx': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +324,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed as a JSON API under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -436,3 +457,25 @@ try:
     from settings_local import *
 except ImportError:
     pass
+
+
+# ======
+# PayPal
+# ======
+
+# Credentials and account settings are read from the environment at run time;
+# no value is ever written into this repository.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects the PayPal sandbox. Any other environment must name its
+# API host explicitly through PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional: when set, used verbatim as the base address of every PayPal call,
+# the OAuth token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='') or None
+# Optional install-unique prefix for the references sent to PayPal; defaults
+# to a random token generated once per database.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
+# Seconds allowed for each PayPal HTTP request.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
