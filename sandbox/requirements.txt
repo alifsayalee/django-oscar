@@ -1,0 +1,5 @@
+# Extra runtime dependencies of the sandbox site, on top of `pip install -e .[test]`.
+#
+# PayPal Server SDK (distribution and import name: `paypal`). It is not published
+# on a package index, so it is installed from its repository, pinned to a commit.
+paypal @ git+https://github.com/context-plugins/paypal-python-sdk.git@0ed3d22071e97650113c99fd82c42bc815f99dcf

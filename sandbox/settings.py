@@ -240,6 +240,23 @@ LOGGING = {
             'propagate': False,
         },
 
+        # PayPal integration: logs method, path, status and PayPal debug ids
+        # only. The HTTP client libraries are kept quiet so request bodies
+        # (card data) and headers (credentials) never reach the logs.
+        'apps.payments_api': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +323,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards HTTP API (/api/)
+    'apps.payments_api.apps.PaymentsApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +425,23 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account settings are read from the environment only; never
+# commit their values. PAYPAL_BASE_URL is an optional override used verbatim
+# for every PayPal call (including the OAuth token request).
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds allowed for a single PayPal HTTP request.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Prefix for the idempotency keys and invoice ids this site sends to PayPal, so
+# several installations can share one PayPal account without collisions.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='oscar')
 
 # Sorl
 # ====
