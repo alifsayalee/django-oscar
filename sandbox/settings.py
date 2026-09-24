@@ -214,6 +214,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.sms_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +400,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -402,9 +411,31 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 # is changed
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
+    'Dispatched': 'Shipped',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# SMS order notifications (apps.sms_notifications)
+# ================================================
+
+# Twilio credentials and numbers are only ever read from the environment.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the base address of the messaging API only.
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='')
+
+# Prefix that makes this install's message references unique on a provider
+# account shared with other applications.
+SMS_NOTIFICATIONS_INSTALL_PREFIX = env.str(
+    'SMS_NOTIFICATIONS_INSTALL_PREFIX', default='oscar-sandbox')
+# How long after dispatch the "how did the delivery go?" message goes out.
+SMS_NOTIFICATIONS_FOLLOWUP_DELAY_DAYS = env.int(
+    'SMS_NOTIFICATIONS_FOLLOWUP_DELAY_DAYS', default=3)
+# Seconds to wait for the provider on each call.
+SMS_NOTIFICATIONS_TIMEOUT = env.float('SMS_NOTIFICATIONS_TIMEOUT', default=10.0)
 
 # Sorl
 # ====
