@@ -251,6 +251,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed through Maxio Advanced Billing
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +432,31 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# Maxio Advanced Billing
+# ======================
+# Credentials and site come from the environment only; never commit their values.
+
+# API key, sent as the HTTP Basic username.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+# Site subdomain: https://<subdomain>.chargify.com
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# 'us' or 'eu' (case-insensitive); anything else is rejected at first use.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+# Handle of the product family whose products are offered as plans.
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the
+# one derived from the subdomain.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# Per-request timeout, in seconds.
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
+# How Maxio collects payment for subscriptions created through the API. The
+# API captures no card, so the default bills by invoice ('remittance');
+# sites on the legacy Statements architecture use 'invoice'.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
+# Prefix of the (otherwise random) Maxio customer reference given to each user.
+MAXIO_CUSTOMER_REFERENCE_PREFIX = env.str(
+    'MAXIO_CUSTOMER_REFERENCE_PREFIX', default='oscar-customer-')
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
