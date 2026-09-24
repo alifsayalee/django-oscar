@@ -214,6 +214,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments API (/api/)
+    'apps.payments.apps.PaymentsApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +400,10 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the payments API (apps.payments)
+    'Awaiting payment': ('Payment authorized', 'Cancelled',),
+    'Payment authorized': ('Complete', 'Cancelled',),
+
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -405,6 +417,24 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and configuration come from the environment at run time; no
+# value is kept in this repository. PAYPAL_BASE_URL is an optional override:
+# when set it is used verbatim for every PayPal call, including the token
+# request; otherwise the host is derived from PAYPAL_ENVIRONMENT.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds allowed for one PayPal call.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Prefixes every PayPal-Request-Id / invoice id this install sends, so two
+# installs sharing one PayPal account never collide. Set it per deployment.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='oscar-sandbox')
 
 # Sorl
 # ====
