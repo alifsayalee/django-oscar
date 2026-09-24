@@ -1,0 +1,7 @@
+# Maxio Advanced Billing Python SDK (not on PyPI; installed from its repository).
+maxio-advanced-billing @ git+https://github.com/context-plugins/maxio-python-sdk.git@main
+# The SDK's built wheel declares no dependencies, so its runtime ones are listed here
+# (ranges from the SDK's pyproject.toml).
+httpx>=0.28.1,<1.0.0
+pydantic[email]>=2.11.0,<3.0.0
+typing-extensions>=4.13.0,<5.0.0

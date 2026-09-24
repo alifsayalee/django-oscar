@@ -240,6 +240,13 @@ LOGGING = {
             'propagate': False,
         },
 
+        # Subscription billing: one line per Maxio call (method, path, status)
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +313,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +440,24 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ======================================
+# Maxio Advanced Billing (subscriptions)
+# ======================================
+
+# Credentials and targeting come from the environment only; never commit their values.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional override: when set, used verbatim as the API base address instead of
+# the one derived from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='') or None
+# Hosting region of the Maxio site: "US" or "EU".
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='US')
+# Prefix of every reference this install sends to Maxio. Give each install
+# that shares a Maxio site its own prefix.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='oscar-sandbox')
+MAXIO_TIMEOUT_SECONDS = env.float('MAXIO_TIMEOUT_SECONDS', default=10.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:
