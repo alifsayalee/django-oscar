@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed through Maxio Advanced Billing
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -389,6 +392,25 @@ OSCAR_ALLOW_ANON_CHECKOUT = True
 # sophisticated things.
 OSCAR_INITIAL_ORDER_STATUS = 'Pending'
 OSCAR_INITIAL_LINE_STATUS = 'Pending'
+
+# Maxio Advanced Billing
+# ======================
+#
+# Credentials and site come from the environment only; nothing here carries a
+# value for them.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the
+# one derived from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# Hosting region of the Maxio account: 'us' or 'eu'.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+# Seconds; bounds each call to Maxio (the SDK does not retry).
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=10.0)
+# Optional prefix for the references sent to Maxio; by default a random token
+# generated once per database.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='')
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {

@@ -1,0 +1,12 @@
+# Maxio Advanced Billing SDK for the sandbox's subscription API (sandbox/apps/subscriptions).
+# Install after the project itself:  pip install -r sandbox/requirements-maxio.txt
+#
+# The SDK is not on any package index; it installs from its repository, pinned
+# to the commit this integration was built and verified against.
+maxio-advanced-billing @ git+https://github.com/context-plugins/maxio-python-sdk.git@3d84ecefb9055ee3fba04e2b6cb22859aface190
+
+# The SDK's pyproject.toml declares these, but its built wheel metadata drops
+# them, so they are listed explicitly.
+httpx>=0.28.1,<1.0.0
+pydantic[email]>=2.11.0,<3.0.0
+typing-extensions>=4.13.0,<5.0.0
