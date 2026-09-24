@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring-subscription billing via Maxio Advanced Billing (/api/)
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +427,34 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# Maxio Advanced Billing
+# =====================
+# Values come only from the environment; nothing here is a credential.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# 'us' or 'eu' (case-insensitive); anything else is rejected at first use.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+# Handle of the product family whose products are offered as plans.
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the
+# one derived from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='') or None
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
+# How subscriptions are collected. This site captures no card, so the
+# default is 'remittance' (invoice left open, no payment attempted). Sites on
+# Maxio's legacy Statements architecture use 'invoice'.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
+# Prefix of every reference this install sends to Maxio. Must be unique per
+# install sharing one Maxio site.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='oscar-sandbox')
+
+LOGGING['loggers']['apps.subscriptions'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
