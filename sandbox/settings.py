@@ -240,6 +240,12 @@ LOGGING = {
             'propagate': False,
         },
 
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +312,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards API (/api/)
+    'apps.paypal_payments.apps.PaypalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +439,23 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ======
+# PayPal
+# ======
+
+# Credentials and account-specific values come from the environment only; the
+# empty defaults keep imports (and tests) working, and the PayPal client refuses
+# to build until the credentials are actually set.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional override: when set it is used verbatim as the base address of every
+# PayPal call, including the OAuth token request.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds; bounds each PayPal HTTP call (connect, read, write and pool).
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:
