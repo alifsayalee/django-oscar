@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments & saved cards JSON API (/api/)
+    'apps.paypal_payments.apps.PaypalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +427,36 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# PayPal
+# ======
+# Credentials and account-specific values come from the environment only;
+# no value is hard-coded here.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects PayPal's sandbox host. Any other environment must set
+# PAYPAL_BASE_URL explicitly.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional override: used verbatim as the API base address for every PayPal
+# call, the OAuth token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='') or None
+# Seconds before a single PayPal call gives up.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Days an authorization can be captured without being reauthorized first.
+PAYPAL_AUTH_HONOR_PERIOD_DAYS = env.int('PAYPAL_AUTH_HONOR_PERIOD_DAYS', default=3)
+# Prefix for every reference sent to PayPal. Leave unset to use the random
+# prefix generated for this database when it was migrated.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='') or None
+
+# JSON CSRF failures for /api/; the default page elsewhere.
+CSRF_FAILURE_VIEW = 'apps.paypal_payments.views.csrf_failure'
+
+LOGGING['loggers']['apps.paypal_payments'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
