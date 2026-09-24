@@ -17,6 +17,9 @@ urlpatterns = [
     # for developers.
     path('admin/', admin.site.urls),
 
+    # JSON API (order SMS notifications); outside i18n_patterns so it has no language prefix
+    path('api/', include('apps.order_sms.urls')),
+
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 
