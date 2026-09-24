@@ -1,0 +1,9 @@
+# Extra requirements for the sandbox's subscription billing app (apps.subscriptions).
+# Install after the project: pip install -e .[test] && pip install -r sandbox/requirements-maxio.txt
+#
+# The Maxio Advanced Billing SDK is not on a package index, and its package metadata does not
+# declare its runtime dependencies, so they are listed here explicitly.
+maxio-advanced-billing @ git+https://github.com/context-plugins/maxio-python-sdk.git@main
+httpx>=0.28.1,<1.0.0
+pydantic[email]>=2.11.0,<3.0.0
+typing-extensions>=4.13.0,<5.0.0

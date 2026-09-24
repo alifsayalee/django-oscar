@@ -17,6 +17,10 @@ urlpatterns = [
     # for developers.
     path('admin/', admin.site.urls),
 
+    # JSON API for Maxio subscription billing. Kept outside i18n_patterns so
+    # API routes are stable regardless of language.
+    path('api/', include('apps.subscriptions.urls')),
+
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 
