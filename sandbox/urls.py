@@ -20,6 +20,10 @@ urlpatterns = [
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 
+    # JSON API for PayPal payments and saved cards. Lives outside
+    # i18n_patterns so the routes are stable, language-independent URLs.
+    path('api/', include('apps.payments_api.urls')),
+
     # include a basic sitemap
     path('sitemap.xml', views.index,
         {'sitemaps': base_sitemaps}),

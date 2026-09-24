@@ -251,6 +251,21 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'apps.payments_api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The PayPal SDK's HTTP stack. Its DEBUG output traces the wire;
+        # keep it quiet so request details never reach the logs.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +321,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed as a JSON API under /api/
+    'apps.payments_api.apps.PaymentsApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +423,19 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account settings are read from the environment at run time and never
+# committed. PAYPAL_BASE_URL is an optional override: when set it is used verbatim as the
+# API base address for every PayPal call, including the OAuth token request.
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env('PAYPAL_CURRENCY', default='')
+PAYPAL_BASE_URL = env('PAYPAL_BASE_URL', default='')
+PAYPAL_TIMEOUT_SECONDS = env.float('PAYPAL_TIMEOUT_SECONDS', default=30.0)
 
 # Sorl
 # ====

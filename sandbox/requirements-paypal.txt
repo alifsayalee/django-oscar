@@ -1,0 +1,3 @@
+# PayPal Server SDK used by sandbox/apps/payments_api. It is not published to a package index,
+# so it installs from its source repository, pinned to the commit the integration was built on.
+paypal @ git+https://github.com/context-plugins/paypal-python-sdk.git@0ed3d22071e97650113c99fd82c42bc815f99dcf
