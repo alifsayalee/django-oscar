@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\claude-runs\\t1pyts-py-maxio-PRchk3-opus55-001\\repo\\.claude\\hooks\\maxio-process-guard.ps1\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash|PowerShell"
+      },
+      {
+        "hooks": [
+          {
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\claude-runs\\t1pyts-py-maxio-PRchk3-opus55-001\\repo\\.claude\\hooks\\maxio-web-guard.ps1\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "WebSearch|WebFetch"
+      }
+    ]
+  }
+}
