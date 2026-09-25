@@ -240,7 +240,22 @@ LOGGING = {
             'propagate': False,
         },
 
+        # Maxio subscription billing (method, URL, status and latency of every Maxio call)
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'raven': {
             'level': 'DEBUG',
             'handlers': ['console'],
@@ -306,6 +321,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed through Maxio Advanced Billing
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +448,25 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing
+# ======================
+# Credentials come from the environment only; never put their values in this file.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# 'us' or 'eu' (case-insensitive); anything else is rejected rather than defaulted
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the subdomain-derived one
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# Seconds per request to Maxio
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=10.0)
+# automatic / remittance / invoice / prepaid. Empty: bill by invoice (no card is captured here) -
+# 'remittance' on Relationship Invoicing sites, 'invoice' on legacy Statements sites
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='')
+# Prefix for the references this install sends to Maxio; must be unique per install sharing a site
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
