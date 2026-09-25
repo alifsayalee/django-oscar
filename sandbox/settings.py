@@ -240,7 +240,18 @@ LOGGING = {
             'propagate': False,
         },
 
+        # Subscription billing (Maxio calls: method, path, status, latency)
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'raven': {
             'level': 'DEBUG',
             'handlers': ['console'],
@@ -306,6 +317,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed through Maxio Advanced Billing
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +444,24 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==============================
+# Maxio Advanced Billing (subscriptions)
+# ==============================
+# Credentials come from the environment at run time; never commit their values.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# Hosting region of the Maxio site: "us" or "eu" (case-insensitive).
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the subdomain-derived one.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=10.0)
+# No card is captured by the API flow, so new subscriptions are invoiced ("remittance");
+# use "invoice" on sites still on the legacy statements architecture.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
+# Namespaces the references this install sends to Maxio; a random per-database id when empty.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
