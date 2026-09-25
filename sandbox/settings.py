@@ -241,6 +241,15 @@ LOGGING = {
         },
 
         # Third party
+        # The Maxio SDK's transport: its DEBUG traces carry provider response headers - keep them out.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'raven': {
             'level': 'DEBUG',
             'handlers': ['console'],
@@ -306,6 +315,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed by Maxio Advanced Billing (JSON API under /api/)
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +436,22 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# Maxio Advanced Billing
+# ======================
+# Credentials come from the environment only - never put their values in this file.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of deriving it from the subdomain
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# "us" or "eu" (case-insensitive); anything else is a configuration error
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
+# Optional: prefix for the references sent to Maxio. When empty, a random id stored in this
+# database is used, so two installs sharing one Maxio site never collide.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='')
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
