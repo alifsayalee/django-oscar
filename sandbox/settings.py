@@ -251,6 +251,22 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # HTTP client internals: their DEBUG output includes raw headers.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+
+        # Sandbox apps
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +322,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.paypal_payments.apps.PaypalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +424,27 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account configuration arrive through the environment only;
+# no value is hard-coded here so the same build runs against any PayPal account.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the base address of every PayPal call
+# (including the OAuth token request) instead of one derived from the environment.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds allowed for one PayPal request.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Makes this install's PayPal request references and invoice ids unique when
+# several installs share one PayPal account.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='oscar-sandbox')
+# PayPal honours an authorization for three days; an older one is reauthorized
+# before it is captured.
+PAYPAL_AUTH_HONOR_PERIOD_DAYS = env.int('PAYPAL_AUTH_HONOR_PERIOD_DAYS', default=3)
 
 # Sorl
 # ====
