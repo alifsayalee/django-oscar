@@ -1,0 +1,8 @@
+# Extra dependencies of the sandbox's subscription billing API (apps.subscriptions).
+# Install after `pip install -e .[test]`:
+#   venv\Scripts\pip install -r sandbox/requirements-subscriptions.txt
+maxio-advanced-billing @ git+https://github.com/context-plugins/maxio-python-sdk.git@main
+# The SDK's runtime dependencies, listed explicitly because pip may not resolve them from the git install.
+httpx>=0.28.1,<1.0.0
+pydantic[email]>=2.11.0,<3.0.0
+typing-extensions>=4.13.0,<5.0.0

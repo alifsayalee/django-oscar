@@ -246,6 +246,18 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The Maxio SDK's HTTP stack; wire-level debug output includes headers.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'sorl.thumbnail': {
             'handlers': ['console'],
             'propagate': True,
@@ -306,6 +318,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Subscription billing API (Maxio Advanced Billing)
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +420,25 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# Maxio Advanced Billing (subscriptions)
+# ======================================
+# Values come from the environment only; never commit them.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: used verbatim as the API base address instead of the subdomain.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# "us" or "eu" (case-insensitive); anything else is a configuration error.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
+# How Maxio collects payment: "remittance" (invoice; no card needed at signup),
+# "automatic" (needs a payment method), "prepaid", or legacy "invoice".
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
+# Prefix of every reference this install sends to Maxio; must differ between
+# installs sharing one Maxio site.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='oscar-sandbox')
 
 # Sorl
 # ====
