@@ -17,6 +17,9 @@ urlpatterns = [
     # for developers.
     path('admin/', admin.site.urls),
 
+    # JSON API for PayPal payments and saved cards (apps.payments)
+    path('api/', include('apps.payments.urls')),
+
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 

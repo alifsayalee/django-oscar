@@ -1,0 +1,4 @@
+# PayPal Server SDK (distribution and import name: "paypal"). It is not published on PyPI; this pins the
+# exact commit of https://github.com/context-plugins/paypal-python-sdk (branch main) this app was built and
+# verified against. Install into the project's venv:  venv\Scripts\pip install -r sandbox/apps/payments/requirements.txt
+paypal @ https://codeload.github.com/context-plugins/paypal-python-sdk/zip/0ed3d22071e97650113c99fd82c42bc815f99dcf

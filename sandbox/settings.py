@@ -1,3 +1,4 @@
+import hashlib
 import os
 import environ
 import oscar
@@ -27,6 +28,10 @@ DATABASES = {
         'ATOMIC_REQUESTS': True
     }
 }
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    # Concurrent writers wait for the lock instead of failing with "database is locked" (the payments
+    # API relies on database transactions for its duplicate-request claims).
+    DATABASES['default']['OPTIONS'] = {'transaction_mode': 'IMMEDIATE', 'timeout': 20}
 
 CACHES = {
     'default': env.cache(default='locmemcache://'),
@@ -214,6 +219,12 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        # PayPal calls (method, URL, status — never bodies) and payment write outcomes. Named here so
+        # the second logging setup done by the WSGI handler does not disable it.
+        'apps.payments': {
+            'level': 'INFO',
+            'propagate': True,
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -241,6 +252,16 @@ LOGGING = {
         },
 
         # Third party
+        # The PayPal SDK's HTTP stack: keep its debug chatter (which can include request metadata)
+        # out of the logs; apps.payments logs method, URL and status itself.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'raven': {
             'level': 'DEBUG',
             'handlers': ['console'],
@@ -306,6 +327,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed under /api/
+    'apps.payments.apps.PaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -396,6 +420,10 @@ OSCAR_ORDER_STATUS_PIPELINE = {
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
+    # Orders placed through the payments API (apps.payments): the card is authorised
+    # at payment, captured when the order is fulfilled ('Complete'), or voided on cancel.
+    'Awaiting payment': ('Payment authorised', 'Cancelled',),
+    'Payment authorised': ('Complete', 'Cancelled',),
 }
 
 # This dict defines the line statuses that will be set when an order's status
@@ -405,6 +433,29 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account settings come from the environment only; never put their values in a file.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default=None)
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default=None)
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default=None)
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default=None)
+# Optional: when set, used verbatim as the API host for every PayPal call, token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default=None) or None
+PAYPAL_TIMEOUT_SECONDS = env.float('PAYPAL_TIMEOUT_SECONDS', default=20.0)
+
+# Prefix for every reference this install sends to PayPal (invoice ids, idempotency keys). It must be
+# unique per install sharing a PayPal account; the default is derived from this install's secret key
+# and database.
+PAYMENTS_REFERENCE_PREFIX = env.str(
+    'PAYMENTS_REFERENCE_PREFIX',
+    default='sbx' + hashlib.sha256(
+        (SECRET_KEY + str(DATABASES['default']['NAME'])).encode()).hexdigest()[:8],
+)
+# An authorization older than this is renewed (reauthorized) before it is captured.
+PAYMENTS_AUTH_HONOR_PERIOD_DAYS = env.int('PAYMENTS_AUTH_HONOR_PERIOD_DAYS', default=3)
 
 # Sorl
 # ====
