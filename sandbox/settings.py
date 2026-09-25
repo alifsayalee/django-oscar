@@ -251,6 +251,16 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # httpx logs every request URL at INFO; SMS provider URLs can carry a
+        # shopper's phone number, which must never be written to logs.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +316,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +418,22 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# Order SMS notifications (Twilio)
+# ================================
+# Credentials are read from the environment at run time and never stored here.
+# TWILIO_BASE_URL optionally overrides the base address of the messaging API only.
+
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env('TWILIO_MESSAGING_SERVICE_SID', default='')
+TWILIO_BASE_URL = env('TWILIO_BASE_URL', default=None)
+
+# Prefix for the references that identify each message this install sends.
+SMS_NOTIFICATIONS_INSTALL_PREFIX = env('SMS_NOTIFICATIONS_INSTALL_PREFIX', default='oscar-sandbox')
+# How long after dispatch the "how did the delivery go?" follow-up is sent.
+SMS_FOLLOWUP_DELAY_HOURS = env.float('SMS_FOLLOWUP_DELAY_HOURS', default=72)
 
 # Sorl
 # ====
