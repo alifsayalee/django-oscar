@@ -251,6 +251,12 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+
+        # Maxio integration (method, URL and status only - never headers or bodies)
+        'apps.subscriptions': {
+            'level': 'INFO',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +312,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Recurring subscriptions billed through Maxio Advanced Billing
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +439,27 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing
+# ======================
+# Read from the environment at run time; never commit values for these.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# Hosting region of the Maxio site: "US" or "EU"
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='US')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: used verbatim as the API base address instead of deriving one from
+# the subdomain
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+MAXIO_TIMEOUT_SECONDS = env.float('MAXIO_TIMEOUT_SECONDS', default=15.0)
+# Optional: how subscriptions are collected - "remittance" / "invoice" (invoiced,
+# no card on file needed), "automatic" or "prepaid". Defaults to invoicing, in
+# whichever form the Maxio site's invoicing architecture uses.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='')
+# Optional: prefix for references sent to Maxio. Defaults to a random token
+# stored in this install's database.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:

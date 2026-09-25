@@ -1,0 +1,8 @@
+# Those dependencies are needed for the sandbox's Maxio subscription billing
+# app (sandbox/apps/subscriptions). Install on top of `pip install -e .[test]`.
+# The SDK is not on any package index; it is pinned to the commit it was built against.
+maxio-advanced-billing @ git+https://github.com/context-plugins/maxio-python-sdk.git@3d84ecefb9055ee3fba04e2b6cb22859aface190
+# The SDK's runtime dependencies (its build metadata does not declare them to pip)
+httpx>=0.28.1,<1.0.0
+pydantic[email]>=2.11.0,<3.0.0
+typing-extensions>=4.13.0,<5.0.0
