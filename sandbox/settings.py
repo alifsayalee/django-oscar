@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # SMS order notifications (Twilio)
+    'apps.order_notifications.apps.OrderNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +395,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -424,6 +428,30 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# SMS order notifications (Twilio)
+# ================================
+# Credentials come from the environment only; never put their values in a file.
+
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the base address of the messaging API (sending, reading and
+# reconciling messages). It does not apply to other Twilio hosts such as Lookups.
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='') or None
+TWILIO_TIMEOUT_SECONDS = env.float('TWILIO_TIMEOUT_SECONDS', default=10.0)
+
+# How long after dispatch the "how did the delivery go?" message is scheduled for.
+SMS_FOLLOWUP_DELAY_HOURS = env.float('SMS_FOLLOWUP_DELAY_HOURS', default=72.0)
+# Prefix unique to this installation, used in the references this app sends to Twilio.
+SMS_REFERENCE_PREFIX = env.str('SMS_REFERENCE_PREFIX', default='oscar-sandbox')
+
+LOGGING['loggers']['apps.order_notifications'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
