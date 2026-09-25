@@ -240,6 +240,12 @@ LOGGING = {
             'propagate': False,
         },
 
+        # PayPal integration: method, URL and status only, never bodies
+        'apps.paypal_payments': {
+            'level': 'INFO',
+            'propagate': True,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +312,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +401,8 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the payments API wait here until PayPal authorizes them
+    'Pending payment': ('Pending', 'Cancelled',),
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -424,6 +435,20 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# PayPal
+# ======
+# Credentials and account settings come from the environment only; no value is
+# kept in this repository. PAYPAL_BASE_URL, when set, is used verbatim for every
+# PayPal call (including the token request) instead of the environment's host.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Prefix for the references sent to PayPal; keep it distinct per shop that
+# shares a PayPal account.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='oscar')
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
