@@ -214,6 +214,18 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The PayPal SDK's HTTP stack; apps.payments logs each call itself.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +318,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.payments.apps.PaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +407,10 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the payments API (apps.payments) start here and
+    # only move on once PayPal holds the funds.
+    'Awaiting payment': ('Payment authorised', 'Cancelled',),
+    'Payment authorised': ('Complete', 'Cancelled', 'Awaiting payment',),
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -405,6 +424,23 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal (apps.payments)
+# ======================
+
+# Every value comes from the environment; none is hard-coded here.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional override: when set it is used verbatim as the API base address for
+# every PayPal call, the OAuth token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Prefix for the references this install sends to PayPal (PayPal-Request-Id,
+# invoice_id, custom_id). It must be unique per install sharing one PayPal
+# account; when unset, a random one is generated once and kept in the database.
+PAYPAL_REQUEST_PREFIX = env.str('PAYPAL_REQUEST_PREFIX', default='')
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
 
 # Sorl
 # ====
