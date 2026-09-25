@@ -214,6 +214,23 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        # The HTTP client libraries log request URLs, which can carry a
+        # destination phone number: keep them quiet.
+        'httpx': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'apps.sms_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +323,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +412,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -403,6 +424,7 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
     'Cancelled': 'Cancelled',
+    'Dispatched': 'Shipped',
     'Complete': 'Shipped',
 }
 
@@ -430,6 +452,22 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# SMS order notifications (Twilio)
+# ================================
+# Credentials are read from the environment at run time - never commit values.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the messaging (Messages) API base address.
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='') or None
+TWILIO_TIMEOUT_SECONDS = env.float('TWILIO_TIMEOUT_SECONDS', default=10.0)
+# Prefix of every message reference this install sends; must differ between
+# installs sharing one Twilio account.
+SMS_NOTIFICATIONS_INSTALL_ID = env.str('SMS_NOTIFICATIONS_INSTALL_ID', default='oscar-sandbox')
+# How long after dispatch the "how did the delivery go?" message is scheduled.
+SMS_FOLLOWUP_DELAY_HOURS = env.float('SMS_FOLLOWUP_DELAY_HOURS', default=72)
 
 # Try and import local settings which can be used to override any of the above.
 try:
