@@ -1,0 +1,6 @@
+# PayPal Server SDK used by sandbox/apps/paypal_payments. It is not published on
+# a package index, so it is kept out of pyproject.toml (which is uploaded to
+# PyPI) and installed on top of `pip install -e .[test]`:
+#
+#   pip install -r sandbox/requirements-paypal.txt
+paypal @ git+https://github.com/context-plugins/paypal-python-sdk.git@main
