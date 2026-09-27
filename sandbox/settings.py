@@ -214,6 +214,20 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.sms_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # httpx/httpcore log full request URLs, and a Lookups URL carries the phone number.
+        'httpx': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +320,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +422,25 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# SMS order notifications (Twilio)
+# ================================
+# Credentials come from the environment only; nothing here may hold a value.
+
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override for the messaging API's base address (sends, reads, reconciliation).
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='') or None
+# Optional override for the Lookups host (number validation); not governed by TWILIO_BASE_URL.
+TWILIO_LOOKUPS_BASE_URL = env.str('TWILIO_LOOKUPS_BASE_URL', default='') or None
+TWILIO_TIMEOUT_SECONDS = env.float('TWILIO_TIMEOUT_SECONDS', default=10.0)
+
+# Prefix of every provider-write reference; must be unique per install sharing a Twilio account.
+SMS_INSTALL_ID = env.str('SMS_INSTALL_ID', default='oscar-sandbox')
+# How long after dispatch the "how did the delivery go?" message is queued for.
+SMS_FOLLOWUP_DELAY_MINUTES = env.int('SMS_FOLLOWUP_DELAY_MINUTES', default=3 * 24 * 60)
 
 # Sorl
 # ====
