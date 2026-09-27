@@ -251,6 +251,18 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # The HTTP client logs request URLs, which carry shoppers' phone
+        # numbers (Lookup paths, message list filters). Keep them out.
+        'httpx': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +318,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # SMS order notifications (Twilio)
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +407,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -402,6 +418,7 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 # is changed
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
+    'Dispatched': 'Shipped',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
@@ -430,6 +447,23 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ===========================
+# SMS order notifications
+# ===========================
+
+# Twilio credentials and configuration come from the environment only.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the messaging API's base address (not Lookup's).
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='') or None
+
+# Prefix of every provider-write reference; unique per install sharing an account.
+SMS_REFERENCE_PREFIX = env.str('SMS_REFERENCE_PREFIX', default='oscar-sandbox')
+# When the "how did the delivery go?" follow-up is scheduled, after dispatch.
+SMS_FOLLOW_UP_DELAY_DAYS = env.int('SMS_FOLLOW_UP_DELAY_DAYS', default=3)
 
 # Try and import local settings which can be used to override any of the above.
 try:
