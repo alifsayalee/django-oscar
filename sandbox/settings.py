@@ -251,6 +251,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'apps.paypal_api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed as a JSON API under /api/
+    'apps.paypal_api.apps.PayPalApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +400,8 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through /api/orders start here until PayPal holds the funds
+    'Awaiting payment': ('Pending', 'Cancelled',),
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -424,6 +434,23 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# PayPal
+# ======
+# Credentials and account-specific values come from the environment only; nothing
+# here carries a value for them. They are validated when the PayPal API is first
+# used, so the rest of the site runs without them.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal call,
+# including the OAuth token request.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Prefix for the references this install sends to PayPal (request ids, invoice ids).
+# Empty means "derive one from SECRET_KEY and the database name".
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
+PAYPAL_TIMEOUT_SECONDS = env.float('PAYPAL_TIMEOUT_SECONDS', default=20.0)
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
