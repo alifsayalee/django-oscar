@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.paypal_integration.apps.PayPalIntegrationConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,35 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# PayPal
+# ======
+# Credentials and environment are read from the process environment at run
+# time; never put their values in this file.
+
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env('PAYPAL_CURRENCY', default='USD')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call, including the OAuth token request.
+PAYPAL_BASE_URL = env('PAYPAL_BASE_URL', default='')
+# Seconds; bounds each PayPal HTTP request (the SDK does not retry).
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Prefix for the idempotency references and invoice ids this install sends to
+# PayPal; must be unique per install sharing a PayPal account. Leave unset to
+# have a random one generated once per database.
+PAYPAL_REFERENCE_PREFIX = env('PAYPAL_REFERENCE_PREFIX', default='')
+
+LOGGING['loggers']['apps.paypal_integration'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
+# The HTTP client's own debug output would dump PayPal request/response
+# metadata; the integration logs method, path and status itself.
+LOGGING['loggers']['httpx'] = {'level': 'WARNING', 'propagate': True}
+LOGGING['loggers']['httpcore'] = {'level': 'WARNING', 'propagate': True}
 
 # Try and import local settings which can be used to override any of the above.
 try:
