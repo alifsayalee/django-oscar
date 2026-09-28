@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +427,32 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# PayPal
+# ======
+# Credentials are only ever read from the environment - never write their values here.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call (token request included) instead of the one derived from the environment.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds allowed for one PayPal HTTP request.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Prefix for every reference sent to PayPal. Leave empty to use an id generated
+# once per database, so installs sharing a merchant account never collide.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
+
+LOGGING['loggers']['apps.paypal_payments'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
+# The HTTP client's DEBUG output traces every PayPal exchange; the app logs
+# method, path, status and PayPal's debug id instead.
+LOGGING['loggers']['httpx'] = {'level': 'WARNING'}
+LOGGING['loggers']['httpcore'] = {'level': 'WARNING'}
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
