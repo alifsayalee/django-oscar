@@ -27,6 +27,10 @@ DATABASES = {
         'ATOMIC_REQUESTS': True
     }
 }
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    # Take SQLite's write lock when a transaction starts, so concurrent requests
+    # queue for it instead of deadlocking when a read turns into a write.
+    DATABASES['default']['OPTIONS'] = {'transaction_mode': 'IMMEDIATE', 'timeout': 20}
 
 CACHES = {
     'default': env.cache(default='locmemcache://'),
@@ -251,6 +255,16 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # The PayPal API client logs method, path and status itself; keep the
+        # HTTP libraries quiet so nothing below that level reaches the logs.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +320,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.payments_api.apps.PaymentsApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +447,25 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# PayPal
+# ======
+
+# All PayPal credentials and configuration come from the environment; nothing is
+# hard-coded. The API app fails with ImproperlyConfigured on first use if a
+# required value is missing, so the rest of the sandbox still runs without them.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the base address of every PayPal call,
+# including the OAuth token request, instead of deriving it from the environment.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds; bounds each PayPal HTTP request.
+PAYPAL_TIMEOUT_SECONDS = env.float('PAYPAL_TIMEOUT_SECONDS', default=20.0)
+# Optional prefix for the references this install sends to PayPal. When unset, a
+# random identifier is generated once and stored in the database.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:
