@@ -214,6 +214,19 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The PayPal SDK's HTTP stack: its DEBUG output carries raw headers. The app's own
+        # transport logs method, path and status instead.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'oscar.alerts': {
             'handlers': ['null'],
             'level': 'INFO',
@@ -306,6 +319,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # JSON API for PayPal payments and saved cards
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +408,10 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the payments API (apps.paypal_payments)
+    'Awaiting payment': ('Payment authorized', 'Cancelled',),
+    'Payment authorized': ('Complete', 'Cancelled',),
+
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -405,6 +425,20 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal (apps.paypal_payments)
+# ======
+# Values come from the environment only; nothing is hard-coded here.
+
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal call (token included)
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Optional: prefix of every reference sent to PayPal; by default a random id minted per database
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
 
 # Sorl
 # ====
