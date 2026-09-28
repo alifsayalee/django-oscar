@@ -209,6 +209,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'oscar.catalogue.import': {
             'handlers': ['console'],
             'level': 'INFO',
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards API (/api/)
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -396,6 +404,10 @@ OSCAR_ORDER_STATUS_PIPELINE = {
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
+    # Orders placed through the PayPal API (apps.paypal_payments)
+    'Awaiting payment': ('Payment authorised', 'Cancelled',),
+    'Payment authorised': ('Fulfilled', 'Cancelled', 'Awaiting payment',),
+    'Fulfilled': (),
 }
 
 # This dict defines the line statuses that will be set when an order's status
@@ -404,7 +416,25 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
+    'Fulfilled': 'Shipped',
 }
+
+# ======
+# PayPal
+# ======
+
+# Read from the environment at run time; no value is ever written here.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects PayPal's sandbox host; any other environment needs PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD').upper()
+# Optional: used verbatim as the API base address for every PayPal call, including the token request.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds allowed for one PayPal request.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Optional fixed prefix for references sent to PayPal; by default a random per-database one is used.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
 
 # Sorl
 # ====
