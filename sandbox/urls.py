@@ -20,6 +20,9 @@ urlpatterns = [
     # i18n URLS need to live outside of i18n_patterns scope of Oscar
     path('i18n/', include(django.conf.urls.i18n)),
 
+    # JSON API for SMS order notifications
+    path('api/', include('apps.sms_notifications.urls')),
+
     # include a basic sitemap
     path('sitemap.xml', views.index,
         {'sitemaps': base_sitemaps}),

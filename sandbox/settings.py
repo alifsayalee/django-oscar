@@ -1,4 +1,6 @@
 import os
+from datetime import timedelta
+
 import environ
 import oscar
 
@@ -240,6 +242,25 @@ LOGGING = {
             'propagate': False,
         },
 
+        # SMS notifications: provider calls are logged by the app's own
+        # transport wrapper with phone numbers masked. The HTTP libraries'
+        # request lines carry full URLs (numbers included), so keep them quiet.
+        'apps.sms_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'httpx': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['null'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +327,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # SMS order notifications (JSON API under /api/)
+    'apps.sms_notifications.apps.SmsNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +429,24 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# SMS order notifications (Twilio)
+# ================================
+
+# Credentials and numbers come from the environment only; never commit values.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the base address of the messaging API (messages are sent,
+# read and reconciled through it). Used verbatim when set.
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='') or None
+TWILIO_TIMEOUT = env.float('TWILIO_TIMEOUT', default=10.0)
+
+# Prefix for the references this install derives for every provider write.
+SMS_REFERENCE_PREFIX = env.str('SMS_REFERENCE_PREFIX', default='oscar-sandbox')
+# How long after dispatch the delivery follow-up is scheduled with the provider.
+SMS_FOLLOW_UP_DELAY = timedelta(hours=env.float('SMS_FOLLOW_UP_DELAY_HOURS', default=72))
 
 # Sorl
 # ====

@@ -1,0 +1,3 @@
+# Extra requirement for the sandbox's SMS order notifications (apps/sms_notifications).
+# The Twilio SDK is not on a package index; it installs from its repository.
+twilio-sdk @ git+https://github.com/context-plugins/twilio-python-sdk.git@main
