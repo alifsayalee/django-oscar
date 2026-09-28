@@ -209,6 +209,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'apps.payments_api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
         'oscar.catalogue.import': {
             'handlers': ['console'],
             'level': 'INFO',
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.payments_api.apps.PaymentsApiConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +438,21 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# PayPal (apps.payments_api)
+# ==========================
+# Values come from the environment only; none are kept in this repository.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API host for every PayPal call, the token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds before a PayPal call is abandoned.
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Prefix of every reference sent to PayPal. Empty means a random prefix generated once per database,
+# so installs sharing one PayPal account never collide.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
 
 # Try and import local settings which can be used to override any of the above.
 try:

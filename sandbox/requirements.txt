@@ -1,0 +1,3 @@
+# Extra dependencies of the sandbox site, on top of `pip install -e .[test]`.
+# The PayPal Server SDK (distribution `paypal`, import root `paypal`) is installed from source.
+paypal @ git+https://github.com/context-plugins/paypal-python-sdk.git@0ed3d22071e97650113c99fd82c42bc815f99dcf
