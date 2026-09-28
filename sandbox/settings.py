@@ -27,6 +27,10 @@ DATABASES = {
         'ATOMIC_REQUESTS': True
     }
 }
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    # Take the write lock when a transaction begins and wait for it, so
+    # concurrent writers queue instead of failing with "database is locked".
+    DATABASES['default']['OPTIONS'] = {'transaction_mode': 'IMMEDIATE', 'timeout': 20}
 
 CACHES = {
     'default': env.cache(default='locmemcache://'),
@@ -240,6 +244,19 @@ LOGGING = {
             'propagate': False,
         },
 
+        # HTTP client internals log wire-level detail at DEBUG; keep them quiet.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
         # Third party
         'raven': {
             'level': 'DEBUG',
@@ -306,6 +323,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Subscription billing with Maxio Advanced Billing
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +450,22 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing
+# ======================
+# Credentials are read from the environment at run time; never commit values.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# "us" or "eu": which Maxio hosting region the site lives in.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base URL instead of the subdomain.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='') or None
+# Optional: prefix for the references sent to Maxio. Defaults to an id
+# generated once per database, so installs sharing a Maxio site never collide.
+MAXIO_REFERENCE_PREFIX = env.str('MAXIO_REFERENCE_PREFIX', default='') or None
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=10.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:

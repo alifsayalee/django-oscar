@@ -1,0 +1,7 @@
+# Subscription billing (sandbox/apps/subscriptions). The Maxio SDK is not on
+# PyPI; it installs from its source repository. Its runtime dependencies are
+# listed explicitly because they are not always resolved from the git source.
+maxio-advanced-billing @ git+https://github.com/context-plugins/maxio-python-sdk.git@main
+httpx>=0.28.1,<1.0.0
+pydantic[email]>=2.11.0,<3.0.0
+typing-extensions>=4.13.0,<5.0.0

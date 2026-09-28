@@ -25,7 +25,11 @@ urlpatterns = [
         {'sitemaps': base_sitemaps}),
     path('sitemap-<slug:section>.xml', views.sitemap,
         {'sitemaps': base_sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')
+        name='django.contrib.sitemaps.views.sitemap'),
+
+    # JSON API for subscription billing (Maxio). Lives outside i18n_patterns
+    # so the routes are stable, language-independent URLs.
+    path('api/', include('apps.subscriptions.urls')),
 ]
 
 # Prefix Oscar URLs with language codes
