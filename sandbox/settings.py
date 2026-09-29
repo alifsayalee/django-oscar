@@ -246,6 +246,20 @@ LOGGING = {
             'handlers': ['console'],
             'propagate': False,
         },
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # HTTP client used by the Maxio SDK; its DEBUG output is wire-level noise
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'sorl.thumbnail': {
             'handlers': ['console'],
             'propagate': True,
@@ -306,6 +320,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +447,22 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# =====================================
+# Maxio Advanced Billing (subscriptions)
+# =====================================
+
+# Credentials come from the environment only; never commit their values.
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# 'us' or 'eu' (case-insensitive): the Maxio hosting region of the site.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+# Handle of the product family whose products are offered as plans.
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: used verbatim as the API base address instead of deriving it from the subdomain.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='') or None
+# Seconds allowed for each Maxio request attempt.
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
 
 # Try and import local settings which can be used to override any of the above.
 try:
