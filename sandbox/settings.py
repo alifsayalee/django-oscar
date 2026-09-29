@@ -209,6 +209,19 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
+        'apps.paypal_payments': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The PayPal SDK's HTTP stack; apps.paypal_payments logs each PayPal
+        # exchange itself without headers or bodies.
+        'httpx': {
+            'level': 'WARNING',
+        },
+        'httpcore': {
+            'level': 'WARNING',
+        },
         'oscar.catalogue.import': {
             'handlers': ['console'],
             'level': 'INFO',
@@ -306,6 +319,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +408,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the PayPal payments API (apps.paypal_payments)
+    'Awaiting payment': ('Payment authorized', 'Cancelled',),
+    'Payment authorized': ('Complete', 'Cancelled',),
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -405,6 +424,18 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account configuration come from the environment only; no
+# value is ever hard-coded here. PAYPAL_BASE_URL, when set, is used verbatim
+# as the API base address for every PayPal call, including the token request.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
 
 # Sorl
 # ====
