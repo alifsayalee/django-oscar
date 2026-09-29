@@ -13,6 +13,9 @@ from apps.sitemaps import base_sitemaps
 admin.autodiscover()
 
 urlpatterns = [
+    # JSON API: SMS order notifications
+    path('api/', include('apps.sms_notifications.urls')),
+
     # Include admin as convenience. It's unsupported and only included
     # for developers.
     path('admin/', admin.site.urls),

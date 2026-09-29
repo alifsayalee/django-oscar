@@ -1,0 +1,5 @@
+# Extra requirement of the sandbox's SMS order notifications app
+# (sandbox/apps/sms_notifications). Install into the same environment as the
+# project: pip install -r sandbox/requirements_sms_notifications.txt
+# The Twilio SDK is not published to a package index; it installs from its repository.
+git+file:///D:/APIMatic/sdk-regen/twilio-python-sdk.git@main#egg=twilio-sdk
