@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments & saved cards JSON API (/api/)
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -396,6 +399,12 @@ OSCAR_ORDER_STATUS_PIPELINE = {
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
+    # Orders placed through the PayPal API (apps.paypal_payments): the order
+    # waits for payment, the money is held when paid, and taken on fulfilment.
+    # An authorisation that can no longer be renewed sends the order back to
+    # 'Pending payment' so the shopper can pay again.
+    'Pending payment': ('Authorised', 'Cancelled',),
+    'Authorised': ('Complete', 'Cancelled', 'Pending payment',),
 }
 
 # This dict defines the line statuses that will be set when an order's status
@@ -430,6 +439,36 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ======
+# PayPal
+# ======
+
+# Credentials and account settings come from the environment only; nothing is
+# hard-coded, so the same build runs against any PayPal account.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects PayPal's sandbox API host. Any other environment must name
+# its API host through PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+# ISO 4217 code that orders placed through the API are priced and charged in.
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the base address of every PayPal call
+# (including the OAuth token request) instead of deriving one from the
+# environment.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds per PayPal HTTP attempt
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+
+LOGGING['loggers']['apps.paypal_payments'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
+# The PayPal SDK's HTTP stack logs raw request/response headers at DEBUG;
+# keep payment traffic out of the (DEBUG-level) root logger.
+for _logger in ('httpx', 'httpcore'):
+    LOGGING['loggers'][_logger] = {'level': 'WARNING', 'propagate': True}
 
 # Try and import local settings which can be used to override any of the above.
 try:
