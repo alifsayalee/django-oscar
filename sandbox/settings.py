@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,21 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# Maxio Advanced Billing (subscriptions API, apps.subscriptions). Values come
+# from the environment only - never commit them.
+MAXIO_API_KEY = env('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base address instead of the
+# address derived from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env('MAXIO_BASE_URL', default='')
+# Hosting region of the Maxio account: "us" or "eu".
+MAXIO_ENVIRONMENT = env('MAXIO_ENVIRONMENT', default='us')
+# Seconds; bounds each Maxio request (the SDK does not retry).
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
+# Prefix of the references this install sends to Maxio.
+MAXIO_REFERENCE_PREFIX = env('MAXIO_REFERENCE_PREFIX', default='oscar-sandbox')
 
 # Try and import local settings which can be used to override any of the above.
 try:

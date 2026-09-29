@@ -1,0 +1,3 @@
+# Maxio Advanced Billing Python SDK, used by apps.subscriptions.
+# Not on a package index; installed from its source repository.
+git+file:///D:/APIMatic/sdk-regen/maxio-python-sdk@main
