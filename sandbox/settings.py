@@ -240,7 +240,24 @@ LOGGING = {
             'propagate': False,
         },
 
+        # PayPal payments app: one line per PayPal call (method, path,
+        # status, latency) - never headers or bodies.
+        'apps.paypal_payments': {
+            'level': 'INFO',
+            'propagate': True,
+        },
+
         # Third party
+        # The PayPal SDK's HTTP stack: its DEBUG chatter echoes response
+        # headers. The PayPal app logs method, path and status itself.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'raven': {
             'level': 'DEBUG',
             'handlers': ['console'],
@@ -306,6 +323,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -405,6 +425,25 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# PayPal
+# ======
+
+# Credentials and account settings come from the environment only; nothing
+# here carries a value. The API answers 503 while any required one is unset.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call, the OAuth token request included.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Seconds; bounds each PayPal request (connect, read, write and pool).
+PAYPAL_TIMEOUT = env.float('PAYPAL_TIMEOUT', default=20.0)
+# Prefix of every reference this install sends to PayPal (invoice ids and
+# PayPal-Request-Id headers), so two installs sharing a PayPal account never
+# collide and reconciliation can tell this site's payments apart.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='oscar-sandbox')
 
 # Sorl
 # ====
