@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,29 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ==========================================
+# Subscription billing (Maxio Advanced Billing)
+# ==========================================
+# Values come from the environment only; never commit them.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: when set, used verbatim as the API base URL instead of one derived
+# from MAXIO_SITE_SUBDOMAIN.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='')
+# Hosting region of the Maxio site: "us" or "eu".
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='us')
+# How Maxio collects payment for new subscriptions. The shop captures no card,
+# so "remittance" (open invoice, no charge attempted) is the default; sites on
+# Maxio's legacy Statements architecture use "invoice".
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
+# Seconds per attempt for each Maxio request.
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=10.0)
+# Prefix of the Maxio customer reference derived from the user's primary key.
+# Give each deployment sharing a Maxio site its own prefix.
+MAXIO_CUSTOMER_REFERENCE_PREFIX = env.str('MAXIO_CUSTOMER_REFERENCE_PREFIX', default='oscar-sandbox-user-')
 
 # Try and import local settings which can be used to override any of the above.
 try:
