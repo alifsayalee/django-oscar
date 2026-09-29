@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed under /api/
+    'apps.payments.apps.PaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -430,6 +433,32 @@ SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
 SECURE_HSTS_SECONDS = env.int('SECURE_HSTS_SECONDS', default=0)
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# ======
+# PayPal
+# ======
+
+# Read at run time from the environment; no value is ever stored in this file.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call (the OAuth token request included) instead of deriving it from
+# PAYPAL_ENVIRONMENT.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Optional: prefix for the references sent to PayPal (PayPal-Request-Id,
+# invoice ids). Defaults to a random id generated once per database.
+PAYPAL_REFERENCE_PREFIX = env.str('PAYPAL_REFERENCE_PREFIX', default='')
+
+LOGGING['loggers']['apps.payments'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
+}
+# The HTTP client under the PayPal SDK: never log wire-level detail.
+LOGGING['loggers']['httpx'] = {'handlers': ['null'], 'level': 'WARNING', 'propagate': False}
+LOGGING['loggers']['httpcore'] = {'handlers': ['null'], 'level': 'WARNING', 'propagate': False}
 
 # Try and import local settings which can be used to override any of the above.
 try:
