@@ -251,6 +251,25 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+
+        # Order SMS notifications. Never logs phone numbers or message text.
+        'apps.order_notifications': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # The HTTP client under the Twilio SDK logs full URLs (which carry
+        # phone numbers) and headers at INFO/DEBUG: keep it quiet.
+        'httpx': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'httpcore': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +325,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.order_notifications.apps.OrderNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +414,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -402,9 +425,31 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 # is changed
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
+    'Dispatched': 'Shipped',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+
+# Order SMS notifications (apps.order_notifications)
+# ==================================================
+
+# Twilio credentials come from the environment only; never commit values.
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the messaging API's base address (sending, reading,
+# reconciling messages). Other Twilio hosts are not affected by it.
+TWILIO_BASE_URL = env('TWILIO_BASE_URL', default=None)
+# Optional override of the Lookup API's base address (number validation).
+TWILIO_LOOKUPS_BASE_URL = env('TWILIO_LOOKUPS_BASE_URL', default=None)
+TWILIO_TIMEOUT_SECONDS = env.float('TWILIO_TIMEOUT_SECONDS', default=10.0)
+
+# Prefix unique to this installation, used in every provider write reference.
+ORDER_SMS_REFERENCE_PREFIX = env('ORDER_SMS_REFERENCE_PREFIX', default='oscar-sandbox')
+# How long after dispatch the provider sends the "how did delivery go?" message.
+ORDER_SMS_FOLLOWUP_DELAY_HOURS = env.float('ORDER_SMS_FOLLOWUP_DELAY_HOURS', default=72)
 
 # Sorl
 # ====

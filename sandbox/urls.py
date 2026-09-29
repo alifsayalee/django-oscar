@@ -25,7 +25,11 @@ urlpatterns = [
         {'sitemaps': base_sitemaps}),
     path('sitemap-<slug:section>.xml', views.sitemap,
         {'sitemaps': base_sitemaps},
-        name='django.contrib.sitemaps.views.sitemap')
+        name='django.contrib.sitemaps.views.sitemap'),
+
+    # JSON API (order SMS notifications). Lives outside i18n_patterns so the
+    # routes stay at /api/... without a language prefix.
+    path('api/', include('apps.order_notifications.urls')),
 ]
 
 # Prefix Oscar URLs with language codes
