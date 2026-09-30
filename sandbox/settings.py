@@ -306,6 +306,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # PayPal payments and saved cards, exposed as a JSON API under /api/
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -404,6 +407,31 @@ OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
+}
+
+# PayPal
+# ======
+
+# REST credentials of the merchant (business) account. Values come from the
+# environment only - never write them into this repository.
+PAYPAL_CLIENT_ID = env.str('PAYPAL_CLIENT_ID', default='')
+PAYPAL_CLIENT_SECRET = env.str('PAYPAL_CLIENT_SECRET', default='')
+# 'sandbox' selects PayPal's sandbox host. Any other environment needs an
+# explicit PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env.str('PAYPAL_ENVIRONMENT', default='sandbox')
+# ISO-4217 code every order is charged in.
+PAYPAL_CURRENCY = env.str('PAYPAL_CURRENCY', default='USD')
+# Optional override: used verbatim as the API base address for every PayPal
+# call, including the OAuth token request.
+PAYPAL_BASE_URL = env.str('PAYPAL_BASE_URL', default='')
+# Prefix for the invoice id sent to PayPal, so this shop's transactions can be
+# told apart from others on the same merchant account during reconciliation.
+PAYPAL_INVOICE_PREFIX = env.str('PAYPAL_INVOICE_PREFIX', default='OSCAR-')
+
+LOGGING['loggers']['apps.paypal_payments'] = {
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': False,
 }
 
 # Sorl
