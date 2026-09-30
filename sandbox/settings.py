@@ -205,6 +205,20 @@ LOGGING = {
         },
     },
     'loggers': {
+        'apps.paypal_payments': {
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # The PayPal client logs method, path and status itself; keep the HTTP
+        # libraries quiet so nothing request-level is logged twice.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
         'oscar': {
             'level': 'DEBUG',
             'propagate': True,
@@ -306,6 +320,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.paypal_payments.apps.PayPalPaymentsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,6 +409,8 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
+    # Orders placed through the PayPal API start here and move to Pending once paid.
+    'Awaiting payment': ('Pending', 'Cancelled',),
     'Pending': ('Being processed', 'Cancelled',),
     'Being processed': ('Complete', 'Cancelled',),
     'Cancelled': (),
@@ -436,3 +455,18 @@ try:
     from settings_local import *
 except ImportError:
     pass
+
+
+# PayPal
+# ======
+
+# All values come from the environment at run time; none are stored in the repository.
+PAYPAL_CLIENT_ID = env('PAYPAL_CLIENT_ID', default=None)
+PAYPAL_CLIENT_SECRET = env('PAYPAL_CLIENT_SECRET', default=None)
+# 'sandbox' selects PayPal's sandbox host; any other environment needs PAYPAL_BASE_URL.
+PAYPAL_ENVIRONMENT = env('PAYPAL_ENVIRONMENT', default='sandbox')
+# Currency every PayPal order is charged in.
+PAYPAL_CURRENCY = env('PAYPAL_CURRENCY', default='USD')
+# Optional: when set, used verbatim as the API base address for every PayPal
+# call, including the OAuth token request.
+PAYPAL_BASE_URL = env('PAYPAL_BASE_URL', default=None) or None
