@@ -251,6 +251,11 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        'apps.subscriptions': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     }
 }
 
@@ -306,6 +311,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.subscriptions.apps.SubscriptionsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -424,6 +432,24 @@ THUMBNAIL_DEFAULT_STORAGE_ALIAS = "default"
 # django/core/serializers/json.Serializer to have the `dumps` function. Also
 # in tests/config.py
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
+
+# Maxio Advanced Billing (subscriptions)
+# =======================================
+# Credentials come from the environment only; nothing here carries a value.
+
+MAXIO_API_KEY = env.str('MAXIO_API_KEY', default='')
+MAXIO_SITE_SUBDOMAIN = env.str('MAXIO_SITE_SUBDOMAIN', default='')
+# 'US' or 'EU' - the Maxio hosting region of the site.
+MAXIO_ENVIRONMENT = env.str('MAXIO_ENVIRONMENT', default='US')
+MAXIO_DEFAULT_PRODUCT_FAMILY = env.str('MAXIO_DEFAULT_PRODUCT_FAMILY', default='')
+# Optional: used verbatim as the API base address instead of the subdomain-derived one.
+MAXIO_BASE_URL = env.str('MAXIO_BASE_URL', default='') or None
+MAXIO_TIMEOUT = env.float('MAXIO_TIMEOUT', default=15.0)
+# How Maxio collects payment for new subscriptions. This site captures no card,
+# so subscriptions are invoiced ('remittance'); 'invoice' on legacy Statements sites.
+MAXIO_PAYMENT_COLLECTION_METHOD = env.str('MAXIO_PAYMENT_COLLECTION_METHOD', default='remittance')
+# Prefix of the reference that ties a Maxio customer to a sandbox user.
+MAXIO_CUSTOMER_REFERENCE_PREFIX = env.str('MAXIO_CUSTOMER_REFERENCE_PREFIX', default='oscar-sandbox-user-')
 
 # Security
 SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
