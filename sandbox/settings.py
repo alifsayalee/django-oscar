@@ -251,6 +251,16 @@ LOGGING = {
             'propagate': True,
             'level': 'INFO',
         },
+        # The HTTP client used by the Twilio SDK logs every request URL at
+        # INFO, and those URLs carry shoppers' phone numbers.
+        'httpx': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'httpcore': {
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 
@@ -306,6 +316,9 @@ INSTALLED_APPS = [
 
     # Django apps that the sandbox depends on
     'django.contrib.sitemaps',
+
+    # Sandbox apps
+    'apps.order_notifications.apps.OrderNotificationsConfig',
 ]
 
 # Add Oscar's custom auth backend so users can sign in using their email
@@ -392,8 +405,9 @@ OSCAR_INITIAL_LINE_STATUS = 'Pending'
 
 # This dict defines the new order statuses than an order can move to
 OSCAR_ORDER_STATUS_PIPELINE = {
-    'Pending': ('Being processed', 'Cancelled',),
-    'Being processed': ('Complete', 'Cancelled',),
+    'Pending': ('Being processed', 'Dispatched', 'Cancelled',),
+    'Being processed': ('Dispatched', 'Complete', 'Cancelled',),
+    'Dispatched': ('Complete', 'Cancelled',),
     'Cancelled': (),
     'Complete': (),
 }
@@ -402,9 +416,26 @@ OSCAR_ORDER_STATUS_PIPELINE = {
 # is changed
 OSCAR_ORDER_STATUS_CASCADE = {
     'Being processed': 'Being processed',
+    'Dispatched': 'Shipped',
     'Cancelled': 'Cancelled',
     'Complete': 'Shipped',
 }
+
+# Order SMS notifications (Twilio)
+# ================================
+
+# Credentials and sender come from the environment only; never hard-code them.
+TWILIO_ACCOUNT_SID = env.str('TWILIO_ACCOUNT_SID', default='')
+TWILIO_AUTH_TOKEN = env.str('TWILIO_AUTH_TOKEN', default='')
+TWILIO_FROM_NUMBER = env.str('TWILIO_FROM_NUMBER', default='')
+TWILIO_MESSAGING_SERVICE_SID = env.str('TWILIO_MESSAGING_SERVICE_SID', default='')
+# Optional override of the messaging API's base address (e.g. a proxy or mock).
+TWILIO_BASE_URL = env.str('TWILIO_BASE_URL', default='') or None
+# Seconds to wait on each network read/connect to Twilio.
+TWILIO_TIMEOUT = env.float('TWILIO_TIMEOUT', default=10.0)
+# How long after dispatch the "how did the delivery go?" follow-up is sent.
+ORDER_NOTIFICATIONS_FOLLOW_UP_DELAY = env.int(
+    'ORDER_NOTIFICATIONS_FOLLOW_UP_DELAY', default=3 * 24 * 60 * 60)
 
 # Sorl
 # ====
